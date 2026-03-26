@@ -1,0 +1,12 @@
+{
+  "name": "smartpos-frontend",
+  "version": "1.0.0",
+  "description": "Front-end desktop Electron para SmartPOS PDV",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^35.1.4"
+  }
+}

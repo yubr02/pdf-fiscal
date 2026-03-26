@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartPOS PDV</title>
+  <link rel="stylesheet" href="./styles/app.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <section id="auth-view" class="auth-view">
+      <div class="brand-panel">
+        <div class="brand-header">
+          <span class="brand-badge">SMARTPOS</span>
+          <h1>PDV profissional para operação rápida de caixa</h1>
+          <p>Fluxo inspirado em sistema comercial real, com teclado como protagonista, leitura de código de barras e operação diária de mercado.</p>
+        </div>
+        <div class="brand-grid">
+          <div class="info-card">
+            <span>Atalhos</span>
+            <strong>F1 a F11</strong>
+            <p>Operação diária com o mínimo de cliques.</p>
+          </div>
+          <div class="info-card">
+            <span>Fiscal</span>
+            <strong>Estrutura pronta</strong>
+            <p>Recebimento e impressão evolutiva.</p>
+          </div>
+          <div class="info-card">
+            <span>Estoque</span>
+            <strong>Baixa automática</strong>
+            <p>Cadastro e venda integrados na mesma base.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-panel">
+        <div class="auth-card" id="login-card">
+          <h2>Entrar no sistema</h2>
+          <p>Faça login para abrir o caixa.</p>
+          <form id="login-form" class="form-grid">
+            <label>Usuário<input type="text" id="login-usuario" required /></label>
+            <label>Senha<input type="password" id="login-senha" required /></label>
+            <button type="submit" class="primary-btn">Entrar</button>
+          </form>
+          <button class="text-btn" data-switch-auth="register">Cadastrar novo usuário</button>
+        </div>
+
+        <div class="auth-card hidden" id="register-card">
+          <h2>Cadastrar usuário</h2>
+          <p>Crie operadores e retorne ao login.</p>
+          <form id="register-form" class="form-grid">
+            <label>Nome<input type="text" id="cadastro-nome" required /></label>
+            <label>Usuário<input type="text" id="cadastro-usuario" required /></label>
+            <label>Senha<input type="password" id="cadastro-senha" required /></label>
+            <label>Confirmar senha<input type="password" id="cadastro-confirmar-senha" required /></label>
+            <button type="submit" class="primary-btn">Cadastrar</button>
+          </form>
+          <button class="text-btn" data-switch-auth="login">Voltar para login</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="pdv-view" class="pdv-view hidden">
+      <aside class="side-panel">
+        <div class="side-brand">
+          <span>SMARTPOS</span>
+          <small>Desktop Electron + API Java</small>
+        </div>
+        <div class="operator-box">
+          <span>Operador</span>
+          <strong id="operador-nome">-</strong>
+          <small id="data-hora-atual">-</small>
+        </div>
+        <div class="shortcut-list">
+          <button class="action-tile" data-action="produto-cadastro">F1 Cadastro de Produtos</button>
+          <button class="action-tile" data-action="compra-fiscal">F3 Compra Fiscal</button>
+          <button class="action-tile" data-action="etiquetas">F4 Etiquetas de Gôndola</button>
+          <button class="action-tile" data-action="cupons">F5 Cupons Não Lançados</button>
+          <button class="action-tile" data-action="fiado">F6 Pesquisar Fiado</button>
+          <button class="action-tile" data-action="tributacao">F8 Manutenção Tributária</button>
+          <button class="action-tile" data-action="historico">F10 Histórico de Vendas</button>
+          <button class="action-tile" data-action="caixa">F11 Fechamento do Caixa</button>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="sale-header">
+          <div class="barcode-zone">
+            <label for="barcode-input">Leitura / código de barras</label>
+            <input id="barcode-input" type="text" placeholder="Passe ou digite o código e pressione Enter" autocomplete="off" />
+          </div>
+          <div class="sale-summary">
+            <div class="summary-card">
+              <span>Total</span>
+              <strong id="total-venda">R$ 0,00</strong>
+            </div>
+            <div class="summary-card">
+              <span>Itens</span>
+              <strong id="quantidade-itens">0</strong>
+            </div>
+          </div>
+        </header>
+
+        <section class="sale-body">
+          <div class="sale-table-card">
+            <div class="table-title-row">
+              <div>
+                <h2>Venda em andamento</h2>
+                <p>Operação principal do caixa com foco na leitura rápida.</p>
+              </div>
+              <button id="clear-sale-btn" class="secondary-btn">Limpar venda</button>
+            </div>
+            <table class="pdv-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Descrição</th>
+                  <th>Quantidade</th>
+                  <th>Valor unitário</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody id="sale-items-body"></tbody>
+            </table>
+          </div>
+
+          <div class="action-panel">
+            <button class="panel-button fiscal" data-action="compra-fiscal"><span>Compra Fiscal</span><small>F3</small></button>
+            <button class="panel-button non-fiscal" data-action="compra-nao-fiscal"><span>Compra Não Fiscal</span><small>Ctrl + R</small></button>
+            <button class="panel-button neutral" data-action="fiado"><span>Pesquisar Fiado</span><small>F6</small></button>
+            <button class="panel-button neutral" data-action="produto-busca"><span>Pesquisar Produtos</span><small>F2</small></button>
+            <button class="panel-button neutral" data-action="etiquetas"><span>Imprimir Etiquetas</span><small>F4</small></button>
+            <button class="panel-button neutral" data-action="tributacao"><span>Manutenção Tributária</span><small>F8</small></button>
+            <button class="panel-button neutral" data-action="historico"><span>Histórico de Vendas</span><small>F10</small></button>
+            <button class="panel-button neutral" data-action="caixa"><span>Fechamento do Caixa</span><small>F11</small></button>
+            <button class="panel-button neutral" data-action="produto-cadastro"><span>Cadastro de Produtos</span><small>F1</small></button>
+            <button class="panel-button neutral" data-action="cupons"><span>Cupons Não Lançados</span><small>F5</small></button>
+          </div>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal-shell">
+      <div class="modal-header">
+        <div>
+          <h3 id="modal-title">Modal</h3>
+          <p id="modal-subtitle"></p>
+        </div>
+        <button id="close-modal-btn" class="icon-btn">x</button>
+      </div>
+      <div id="modal-content" class="modal-content"></div>
+    </div>
+  </div>
+
+  <template id="recebimento-template">
+    <div class="modal-grid two-columns">
+      <div class="receive-side">
+        <div class="receive-total">
+          <span>Total da compra</span>
+          <strong id="receive-total-value">R$ 0,00</strong>
+        </div>
+        <label>Forma de pagamento
+          <select id="receive-payment-method">
+            <option value="DINHEIRO">Dinheiro</option>
+            <option value="DEBITO">Débito</option>
+            <option value="CREDITO">Crédito</option>
+            <option value="PIX">PIX</option>
+            <option value="FIADO">Fiado</option>
+          </select>
+        </label>
+        <label>Valor pago<input type="number" id="receive-paid-value" min="0" step="0.01" /></label>
+        <label>Cliente opcional<input type="text" id="receive-client-search" placeholder="Buscar por nome, CPF ou telefone" /></label>
+        <div id="receive-client-results" class="list-box compact-list"></div>
+      </div>
+      <div class="receive-side">
+        <div class="receive-metrics">
+          <div class="metric-card">
+            <span>Total</span>
+            <strong id="receive-total-metric">R$ 0,00</strong>
+          </div>
+          <div class="metric-card">
+            <span>Troco</span>
+            <strong id="receive-change-metric">R$ 0,00</strong>
+          </div>
+        </div>
+        <div class="receipt-actions">
+          <button id="receipt-identified-btn" class="secondary-btn">Cupom fiscal identificado</button>
+          <button id="confirm-sale-btn" class="primary-btn">Confirmar venda</button>
+        </div>
+        <div class="receipt-preview">
+          <h4>Estrutura pronta para cupom</h4>
+          <div class="receipt-paper">
+            <p>SMARTPOS MERCEARIA</p>
+            <p>Total: <strong id="receipt-preview-total">R$ 0,00</strong></p>
+            <p>Tipo: <strong id="receipt-preview-type">FISCAL</strong></p>
+            <p>Preparado para impressão térmica futura.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
